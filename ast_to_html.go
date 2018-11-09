@@ -1,5 +1,7 @@
 package main
 
+import "go/ast"
+
 type S2html string
 
 func (s S2html) String() (out string) {
@@ -12,4 +14,7 @@ func (s S2html) String() (out string) {
 	// 	out += "}\n"
 
 	return
+}
+
+func (s *S2html) Parse(a *ast.Field, structName string) {
 }

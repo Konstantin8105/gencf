@@ -38,6 +38,9 @@ var Parameter = struct {
 	PackageName    string
 }{}
 
+// pipe for outpur information
+var osStdout = os.Stdout
+
 type arrayStrings []string
 
 func (a *arrayStrings) String() string {
@@ -55,6 +58,7 @@ func main() {
 	// CLI design
 	// gensf -struct=foo -struct=buz -o=out_file.go -i=file1.go -i=file2.go
 
+	// flags
 	pif := arrayStrings(Parameter.InputFilename)
 	pst := arrayStrings(Parameter.Structs)
 
@@ -74,11 +78,6 @@ func main() {
 		os.Exit(-1)
 	}
 }
-
-var out string
-var par string
-
-var osStdout = os.Stdout
 
 func run() error {
 	// check input data
@@ -179,7 +178,37 @@ func run() error {
 	return ioutil.WriteFile(Parameter.OutputFilename, body(h, s), 0644)
 }
 
-func parsing(a *ast.GenDecl, structName string) (h2s H2go, s2h S2html, err error) {
+type Parser interface {
+	Parse(a *ast.Field, structName string)
+}
+
+func parsing(decl *ast.GenDecl, structName string) (h2s H2go, s2h S2html, err error) {
+	if decl.Tok != token.TYPE {
+		return
+	}
+	if len(decl.Specs) != 1 {
+		return
+	}
+	if _, ok := decl.Specs[0].(*ast.TypeSpec); !ok {
+		return
+	}
+	tc := decl.Specs[0].(*ast.TypeSpec)
+	if tc.Name.Name != structName {
+		return
+	}
+
+	fl := tc.Type.(*ast.StructType).Fields
+
+	ps := []Parser{
+		&h2s,
+		&s2h,
+	}
+
+	for _, fs := range fl.List {
+		for i := range ps {
+			ps[i].Parse(fs, structName)
+		}
+	}
 	return
 }
 
@@ -206,29 +235,9 @@ func body(h2s []H2go, s2h []S2html) (b []byte) {
 	return buf.Bytes()
 }
 
-func info(decl *ast.GenDecl, name string) {
-	if decl.Tok != token.TYPE {
-		return
-	}
-	if len(decl.Specs) != 1 {
-		return
-	}
-	if _, ok := decl.Specs[0].(*ast.TypeSpec); !ok {
-		return
-	}
-	tc := decl.Specs[0].(*ast.TypeSpec)
-	if tc.Name.Name != name {
-		return
-	}
-
-	fl := tc.Type.(*ast.StructType).Fields
-
-	for _, fs := range fl.List {
-		parse(name, fs)
-	}
-}
-
 func parse(basename string, fs *ast.Field) {
+
+	var out, par string
 
 	y := struct {
 		Name      string

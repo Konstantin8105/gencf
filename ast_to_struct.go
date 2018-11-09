@@ -1,5 +1,7 @@
 package main
 
+import "go/ast"
+
 type H2go string
 
 func (h H2go) String() (out string) {
@@ -13,4 +15,7 @@ func (h H2go) String() (out string) {
 	// 	par += "	return\n"
 	// 	par += "}\n"
 	return
+}
+
+func (h *H2go) Parse(a *ast.Field, structName string) {
 }
