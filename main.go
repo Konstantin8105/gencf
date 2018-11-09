@@ -1,7 +1,3 @@
-// The following directive is necessary to make the package coherent:
-
-// +build ignore
-
 package main
 
 import (
@@ -36,6 +32,12 @@ var out string
 var par string
 
 func main() {
+	// CLI design
+	// gensf -struct=foo -struct=buz -o=out_file.go file1.go file2.go
+
+}
+
+func temp() {
 	// example of os.Args:
 	// [/tmp/go-build649008261/b001/exe/gen -- datasheet]
 	if len(os.Args) != 3 || os.Args[1] != "--" {
