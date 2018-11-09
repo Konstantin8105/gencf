@@ -38,6 +38,13 @@ var Parameter = struct {
 	PackageName    string
 }{}
 
+func ResetParameter() {
+	Parameter.InputFilename = []string{}
+	Parameter.OutputFilename = ""
+	Parameter.Structs = []string{}
+	Parameter.PackageName = "main"
+}
+
 // pipe for outpur information
 var osStdout = os.Stdout
 
