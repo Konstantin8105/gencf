@@ -157,16 +157,18 @@ func run() error {
 	var s []S2html
 	for i := range files {
 		for k := range files[i].Decls {
-			if decl, ok := files[i].Decls[k].(*ast.GenDecl); ok {
-				for j := range Parameter.Structs {
-					h2s, s2h, err := parsing(decl, Parameter.Structs[j])
-					if err != nil {
-						et.Add(err)
-						continue
-					}
-					h = append(h, h2s)
-					s = append(s, s2h)
+			decl, ok := files[i].Decls[k].(*ast.GenDecl)
+			if !ok {
+				continue
+			}
+			for j := range Parameter.Structs {
+				h2s, s2h, err := parsing(decl, Parameter.Structs[j])
+				if err != nil {
+					et.Add(err)
+					continue
 				}
+				h = append(h, h2s)
+				s = append(s, s2h)
 			}
 		}
 	}
