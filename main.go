@@ -67,7 +67,7 @@ func main() {
 	// run parsing
 	err := run()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, err.String())
+		fmt.Fprintf(os.Stderr, err.Error())
 		os.Exit(-1)
 	}
 }
@@ -122,8 +122,7 @@ func run() error {
 		// parsing file
 		f, err := parser.ParseFile(token.NewFileSet(), pwd+"/"+filename, nil, parser.ParseComments)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err
 		}
 
 		// find information
@@ -176,6 +175,7 @@ func run() error {
 		}
 	}
 
+	return nil
 }
 
 func info(decl *ast.GenDecl, name string) {
