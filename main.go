@@ -35,6 +35,7 @@ var Parameter = struct {
 	InputFilename  []string
 	OutputFilename string
 	Structs        []string
+	PackageName    string
 }{}
 
 type arrayStrings []string
@@ -60,6 +61,7 @@ func main() {
 	flag.Var(&pif, "i", "input filename for example : 'main.go'")
 	flag.Var(&pst, "struct", "name of struct")
 	flag.StringVar(&Parameter.OutputFilename, "o", "out_gen.go", "name of output filename")
+	flag.StringVar(&Parameter.PackageName, "p", "main", "package in generate file")
 	flag.Parse()
 
 	Parameter.InputFilename = []string(pif)
@@ -87,6 +89,9 @@ func run() error {
 	if len(Parameter.Structs) == 0 {
 		et.Add(fmt.Errorf("name of struct is not added"))
 	}
+	if Parameter.PackageName == "" {
+		et.Add(fmt.Errorf("name of package is empty"))
+	}
 	if Parameter.OutputFilename == "" {
 		et.Add(fmt.Errorf("name of output file is empty"))
 	}
@@ -103,6 +108,7 @@ func run() error {
 
 	// print input data
 	fmt.Fprintf(osStdout, "Generate HTML form from Go struct:\n")
+	fmt.Fprintf(osStdout, "Package name: %s\n", Parameter.PackageName)
 	fmt.Fprintf(osStdout, "Input go files:\n")
 	for i := range Parameter.InputFilename {
 		fmt.Fprintf(osStdout, "\t* %s\n", Parameter.InputFilename[i])
