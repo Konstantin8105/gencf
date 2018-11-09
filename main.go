@@ -182,7 +182,14 @@ func run() error {
 		}
 	}
 
-	return ioutil.WriteFile(Parameter.OutputFilename, body(h, s), 0644)
+	err = ioutil.WriteFile(Parameter.OutputFilename, body(h, s), 0644)
+	if err != nil {
+		return err
+	}
+
+	// TODO check output file by gofmt
+
+	return nil
 }
 
 type Parser interface {
@@ -190,6 +197,7 @@ type Parser interface {
 }
 
 func parsing(decl *ast.GenDecl, structName string) (h2s H2go, s2h S2html, err error) {
+	// check : is this ast have struct name
 	if decl.Tok != token.TYPE {
 		return
 	}
@@ -204,21 +212,17 @@ func parsing(decl *ast.GenDecl, structName string) (h2s H2go, s2h S2html, err er
 		return
 	}
 
+	// is this struct
 	fl, ok := tc.Type.(*ast.StructType)
 	if !ok {
 		err = fmt.Errorf("Not correct type : %T", tc.Type)
 		return
 	}
 
-	ps := []Parser{
-		&h2s,
-		&s2h,
-	}
-
+	// parsing by parts
+	ps := []Parser{&h2s, &s2h}
 	for _, fs := range fl.Fields.List {
 		for i := range ps {
-			// TODO
-			fmt.Println(structName, " -> ", fs)
 			ps[i].Parse(fs, structName)
 		}
 	}

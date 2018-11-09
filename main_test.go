@@ -26,6 +26,7 @@ func TestRun(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			// TODO compare results of parsing
 		})
 	}
 }
