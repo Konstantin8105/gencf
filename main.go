@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
@@ -75,44 +76,46 @@ func main() {
 var out string
 var par string
 
+var osStdout = os.Stdout
+
 func run() error {
-
 	// print input data
-	fmt.Println(Parameter)
+	fmt.Fprintf(osStdout, "Generate HTML form from Go struct:\n")
+	fmt.Fprintf(osStdout, "Input go files:\n")
+	for i := range Parameter.InputFilename {
+		fmt.Fprintf(osStdout, "\t* %s\n", Parameter.InputFilename[i])
+	}
+	fmt.Fprintf(osStdout, "Parsing next Go structs:\n")
+	for i := range Parameter.Structs {
+		fmt.Fprintf(osStdout, "\t* %s\n", Parameter.Structs[i])
+	}
+	fmt.Fprintf(osStdout, "Output go file: %s\n", Parameter.OutputFilename)
 
+	// check input data
+	et := errors.New("Check input data")
 	if len(Parameter.InputFilename) == 0 {
-		return fmt.Errorf("Please enter input file/files")
+		et.Add(fmt.Errorf("input file/files is not added"))
 	}
-
 	if len(Parameter.Structs) == 0 {
-		return fmt.Errorf("Please enter input struct name/names")
+		et.Add(fmt.Errorf("name of struct is not added"))
 	}
-
 	if Parameter.OutputFilename == "" {
-		return fmt.Errorf("Please enter not empty output filename")
+		et.Add(fmt.Errorf("name of output file is empty"))
 	}
-
-	// TODO: input filename is exist
-
-	// example of os.Args:
-	// [/tmp/go-build649008261/b001/exe/gen -- datasheet]
-	if len(os.Args) != 3 || os.Args[1] != "--" {
-		panic(fmt.Errorf("Not correct arguments : ", os.Args))
+	for i := range Parameter.InputFilename {
+		_, err := os.Stat(Parameter.InputFilename[i])
+		if err != nil {
+			et.Add("input file `%s` is not exist", Parameter.InputFilename[i])
+		}
 	}
-
-	// start
-	name := os.Args[2]
-	fmt.Printf("Generate struct `%s`\n", name)
+	if et.IsError() {
+		return et
+	}
 
 	// get present folder
 	pwd, err := os.Getwd()
 	if err != nil {
-		panic(err)
-	}
-
-	goFiles, err := filepath.Glob("*.go")
-	if err != nil {
-		panic(err)
+		return fmt.Errorf("Cannot get name of present folder")
 	}
 
 	for _, filename := range goFiles {
