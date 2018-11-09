@@ -1,7 +1,7 @@
 package test
 
-// buzz - struct of test data
-type buzz struct {
+// TestStruct - struct of test data
+type TestStruct struct {
 	// internal paramenters
 	a, b, c, d int
 

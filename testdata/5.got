@@ -5,7 +5,7 @@ type Se struct {
 	f *float64
 }
 
-type Re struct {
+type TestStruct struct {
 	sePointer *Se
 	seValue   Se
 }

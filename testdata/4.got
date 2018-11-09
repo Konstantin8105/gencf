@@ -1,6 +1,6 @@
 package test
 
-type FirstItem struct {
+type TestStruct struct {
 	Field string
 
 	NestedStruct struct {

@@ -204,15 +204,21 @@ func parsing(decl *ast.GenDecl, structName string) (h2s H2go, s2h S2html, err er
 		return
 	}
 
-	fl := tc.Type.(*ast.StructType).Fields
+	fl, ok := tc.Type.(*ast.StructType)
+	if !ok {
+		err = fmt.Errorf("Not correct type : %T", tc.Type)
+		return
+	}
 
 	ps := []Parser{
 		&h2s,
 		&s2h,
 	}
 
-	for _, fs := range fl.List {
+	for _, fs := range fl.Fields.List {
 		for i := range ps {
+			// TODO
+			fmt.Println(structName, " -> ", fs)
 			ps[i].Parse(fs, structName)
 		}
 	}

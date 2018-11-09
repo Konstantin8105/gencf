@@ -1,6 +1,6 @@
 package test
 
-type foo struct {
+type TestStruct struct {
 	int     a
 	float64 b
 }
