@@ -7,6 +7,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -51,19 +52,18 @@ func (a *arrayStrings) Set(value string) error {
 
 func main() {
 	// CLI design
-	// gensf -struct=foo -struct=buz -o=out_file.go file1.go file2.go
-	{
-		pif := arrayStrings(Parameter.InputFilename)
-		pst := arrayStrings(Parameter.Structs)
+	// gensf -struct=foo -struct=buz -o=out_file.go -i=file1.go -i=file2.go
 
-		flag.Var(&pif, "i", "input filename for example : 'main.go'")
-		flag.Var(&pst, "struct", "name of struct")
-		flag.StringVar(&Parameter.OutputFilename, "o", "out_gen.go", "name of output filename")
-		flag.Parse()
+	pif := arrayStrings(Parameter.InputFilename)
+	pst := arrayStrings(Parameter.Structs)
 
-		Parameter.InputFilename = []string(pif)
-		Parameter.Structs = []string(pst)
-	}
+	flag.Var(&pif, "i", "input filename for example : 'main.go'")
+	flag.Var(&pst, "struct", "name of struct")
+	flag.StringVar(&Parameter.OutputFilename, "o", "out_gen.go", "name of output filename")
+	flag.Parse()
+
+	Parameter.InputFilename = []string(pif)
+	Parameter.Structs = []string(pst)
 
 	// run parsing
 	err := run()
@@ -141,9 +141,11 @@ func run() error {
 
 	// parsing HTML, Go
 	et.Name = "Parsing go to html, html to go"
+	var h []H2go
+	var s []S2html
 	for i := range files {
 		for j := range Parameter.Structs {
-			h2s, s2h, ok, err := parse(files[i], Parameter.Structs[j])
+			h2s, s2h, ok, err := parsing(files[i], Parameter.Structs[j])
 			if err != nil {
 				et.Add(err)
 				continue
@@ -151,16 +153,31 @@ func run() error {
 			if !ok {
 				continue
 			}
-			// TODO save structs
+			h = append(h, h2s)
+			s = append(s, s2h)
 		}
 	}
 	if et.IsError() {
 		return et
 	}
 
-	// TODO save structs into output file
+	// save structs into output file
+	if _, err := os.Stat(Parameter.OutputFilename); err == nil {
+		err = os.Remove(Parameter.OutputFilename)
+		if err != nil {
+			return fmt.Errorf("cannot remove file : %v", err)
+		}
+	}
 
-	return nil
+	return ioutil.WriteFile(Parameter.OutputFilename, body(h, s), 0644)
+}
+
+func parsing(a *ast.File, str string) (h2s H2go, s2h S2html, ok bool, err error) {
+	return
+}
+
+func body(h2s []H2go, s2h []S2html) (b []byte) {
+	return
 }
 
 // for _, filename := range goFiles {
@@ -208,15 +225,6 @@ func run() error {
 //
 // 	filename = pwd + "/" + strings.ToLower(name) + "_gen.go"
 //
-// 	err = os.Remove(filename)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-//
-// 	err = ioutil.WriteFile(filename, []byte(out), 0644)
-// 	if err != nil {
-// 		panic(err)
-// 	}
 // }
 //
 // 	return nil
