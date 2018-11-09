@@ -6,7 +6,7 @@ import (
 )
 
 func TestRun(t *testing.T) {
-	testFiles, err := filepath.Glob(filepath.FromSlash("testdata/" + "*.c"))
+	testFiles, err := filepath.Glob(filepath.FromSlash("testdata/" + "*.go"))
 	if err != nil {
 		t.Fatal(err)
 	}
