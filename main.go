@@ -2,18 +2,18 @@ package main
 
 import (
 	"bytes"
-	"errors"
 	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/Konstantin8105/errors"
 )
 
 // result of generation:
@@ -79,18 +79,6 @@ var par string
 var osStdout = os.Stdout
 
 func run() error {
-	// print input data
-	fmt.Fprintf(osStdout, "Generate HTML form from Go struct:\n")
-	fmt.Fprintf(osStdout, "Input go files:\n")
-	for i := range Parameter.InputFilename {
-		fmt.Fprintf(osStdout, "\t* %s\n", Parameter.InputFilename[i])
-	}
-	fmt.Fprintf(osStdout, "Parsing next Go structs:\n")
-	for i := range Parameter.Structs {
-		fmt.Fprintf(osStdout, "\t* %s\n", Parameter.Structs[i])
-	}
-	fmt.Fprintf(osStdout, "Output go file: %s\n", Parameter.OutputFilename)
-
 	// check input data
 	et := errors.New("Check input data")
 	if len(Parameter.InputFilename) == 0 {
@@ -105,12 +93,25 @@ func run() error {
 	for i := range Parameter.InputFilename {
 		_, err := os.Stat(Parameter.InputFilename[i])
 		if err != nil {
-			et.Add("input file `%s` is not exist", Parameter.InputFilename[i])
+			et.Add(fmt.Errorf("input file `%s` is not exist", Parameter.InputFilename[i]))
 		}
 	}
 	if et.IsError() {
+		flag.PrintDefaults()
 		return et
 	}
+
+	// print input data
+	fmt.Fprintf(osStdout, "Generate HTML form from Go struct:\n")
+	fmt.Fprintf(osStdout, "Input go files:\n")
+	for i := range Parameter.InputFilename {
+		fmt.Fprintf(osStdout, "\t* %s\n", Parameter.InputFilename[i])
+	}
+	fmt.Fprintf(osStdout, "Parsing next Go structs:\n")
+	for i := range Parameter.Structs {
+		fmt.Fprintf(osStdout, "\t* %s\n", Parameter.Structs[i])
+	}
+	fmt.Fprintf(osStdout, "Output go file: %s\n", Parameter.OutputFilename)
 
 	// get present folder
 	pwd, err := os.Getwd()
@@ -118,68 +119,108 @@ func run() error {
 		return fmt.Errorf("Cannot get name of present folder")
 	}
 
-	for _, filename := range goFiles {
-		out = ""
-		par = ""
-
-		// parsing file
-		f, err := parser.ParseFile(token.NewFileSet(), pwd+"/"+filename, nil, parser.ParseComments)
+	// parsing
+	var files []*ast.File
+	et.Name = "parsing Go files to AST"
+	for _, filename := range Parameter.InputFilename {
+		f, err := parser.ParseFile(
+			token.NewFileSet(),
+			filepath.FromSlash(pwd+"/"+filename),
+			nil,
+			parser.ParseComments)
 		if err != nil {
-			return err
-		}
-
-		// find information
-		for i := range f.Decls {
-			if decl, ok := f.Decls[i].(*ast.GenDecl); ok {
-				info(decl, name)
-			}
-		}
-
-		if out == "" || par == "" {
-			continue
-		}
-
-		// header
-		out = "package main\n\n" +
-			"import \"fmt\"\n" +
-			"import \"strconv\"\n" +
-			"import errors \"github.com/Konstantin8105/errors\"\n" +
-			"import \"net/http\"\n\n" +
-			fmt.Sprintf("func (value %s) ToHtml() (out string) {\n", name) +
-			out
-
-		par = fmt.Sprintf("func (value *%s) FromHtml(r *http.Request) (err error) {\n", name) +
-			"	et := errors.New(\"Errors of convert\")\n" +
-			par
-
-		// footer
-		out += "	return\n"
-		out += "}\n"
-
-		par += "	if (et.IsError()){\n"
-		par += "		return et\n"
-		par += "	}\n"
-		par += "	return\n"
-		par += "}\n"
-
-		// adding
-		out += "\n" + par
-
-		filename = pwd + "/" + strings.ToLower(name) + "_gen.go"
-
-		err = os.Remove(filename)
-		if err != nil {
-			panic(err)
-		}
-
-		err = ioutil.WriteFile(filename, []byte(out), 0644)
-		if err != nil {
-			panic(err)
+			et.Add(fmt.Errorf("Cannot parse file : %s", filename)).
+				Add(err)
+		} else {
+			files = append(files, f)
 		}
 	}
+	if et.IsError() {
+		return et
+	}
+
+	// parsing HTML, Go
+	et.Name = "Parsing go to html, html to go"
+	for i := range files {
+		for j := range Parameter.Structs {
+			h2s, s2h, ok, err := parse(files[i], Parameter.Structs[j])
+			if err != nil {
+				et.Add(err)
+				continue
+			}
+			if !ok {
+				continue
+			}
+			// TODO save structs
+		}
+	}
+	if et.IsError() {
+		return et
+	}
+
+	// TODO save structs into output file
 
 	return nil
 }
+
+// for _, filename := range goFiles {
+// 	out = ""
+// 	par = ""
+//
+// 	// parsing file
+//
+// 	// find information
+// 	for i := range f.Decls {
+// 		if decl, ok := f.Decls[i].(*ast.GenDecl); ok {
+// 			info(decl, name)
+// 		}
+// 	}
+//
+// 	if out == "" || par == "" {
+// 		continue
+// 	}
+//
+// 	// header
+// 	out = "package main\n\n" +
+// 		"import \"fmt\"\n" +
+// 		"import \"strconv\"\n" +
+// 		"import errors \"github.com/Konstantin8105/errors\"\n" +
+// 		"import \"net/http\"\n\n" +
+// 		fmt.Sprintf("func (value %s) ToHtml() (out string) {\n", name) +
+// 		out
+//
+// 	par = fmt.Sprintf("func (value *%s) FromHtml(r *http.Request) (err error) {\n", name) +
+// 		"	et := errors.New(\"Errors of convert\")\n" +
+// 		par
+//
+// 	// footer
+// 	out += "	return\n"
+// 	out += "}\n"
+//
+// 	par += "	if (et.IsError()){\n"
+// 	par += "		return et\n"
+// 	par += "	}\n"
+// 	par += "	return\n"
+// 	par += "}\n"
+//
+// 	// adding
+// 	out += "\n" + par
+//
+// 	filename = pwd + "/" + strings.ToLower(name) + "_gen.go"
+//
+// 	err = os.Remove(filename)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+//
+// 	err = ioutil.WriteFile(filename, []byte(out), 0644)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// }
+//
+// 	return nil
+// }
 
 func info(decl *ast.GenDecl, name string) {
 	if decl.Tok != token.TYPE {
