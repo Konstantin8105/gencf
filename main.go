@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"flag"
 	"fmt"
 	"go/ast"
 	"go/parser"
@@ -28,16 +29,71 @@ import (
 //      return
 // }
 
-var out string
-var par string
+var Parameter = struct {
+	InputFilename  []string
+	OutputFilename string
+	Structs        []string
+}{}
+
+type arrayStrings []string
+
+func (a *arrayStrings) String() string {
+	return fmt.Sprintf("%v", []string(*a))
+}
+
+func (a *arrayStrings) Set(value string) error {
+	v := []string(*a)
+	v = append(v, value)
+	*a = arrayStrings(v)
+	return nil
+}
 
 func main() {
 	// CLI design
 	// gensf -struct=foo -struct=buz -o=out_file.go file1.go file2.go
+	{
+		pif := arrayStrings(Parameter.InputFilename)
+		pst := arrayStrings(Parameter.Structs)
 
+		flag.Var(&pif, "i", "input filename for example : 'main.go'")
+		flag.Var(&pst, "struct", "name of struct")
+		flag.StringVar(&Parameter.OutputFilename, "o", "out_gen.go", "name of output filename")
+		flag.Parse()
+
+		Parameter.InputFilename = []string(pif)
+		Parameter.Structs = []string(pst)
+	}
+
+	// run parsing
+	err := run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, err.String())
+		os.Exit(-1)
+	}
 }
 
-func temp() {
+var out string
+var par string
+
+func run() error {
+
+	// print input data
+	fmt.Println(Parameter)
+
+	if len(Parameter.InputFilename) == 0 {
+		return fmt.Errorf("Please enter input file/files")
+	}
+
+	if len(Parameter.Structs) == 0 {
+		return fmt.Errorf("Please enter input struct name/names")
+	}
+
+	if Parameter.OutputFilename == "" {
+		return fmt.Errorf("Please enter not empty output filename")
+	}
+
+	// TODO: input filename is exist
+
 	// example of os.Args:
 	// [/tmp/go-build649008261/b001/exe/gen -- datasheet]
 	if len(os.Args) != 3 || os.Args[1] != "--" {
