@@ -131,7 +131,7 @@ func run() error {
 		return fmt.Errorf("Cannot get name of present folder : %v", err)
 	}
 
-	// parsing
+	// parsing file to ast
 	var files []*ast.File
 	et.Name = "parsing Go files to AST"
 	for _, filename := range Parameter.InputFilename {
@@ -151,7 +151,7 @@ func run() error {
 		return et
 	}
 
-	// parsing HTML, Go
+	// parsing to HTML, Go
 	et.Name = "Parsing go to html, html to go"
 	var h []H2go
 	var s []S2html
