@@ -116,7 +116,7 @@ func run() error {
 	// get present folder
 	pwd, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("Cannot get name of present folder")
+		return fmt.Errorf("Cannot get name of present folder : %v", err)
 	}
 
 	// parsing
@@ -144,17 +144,18 @@ func run() error {
 	var h []H2go
 	var s []S2html
 	for i := range files {
-		for j := range Parameter.Structs {
-			h2s, s2h, ok, err := parsing(files[i], Parameter.Structs[j])
-			if err != nil {
-				et.Add(err)
-				continue
+		for k := range files[i].Decls {
+			if decl, ok := files[i].Decls[k].(*ast.GenDecl); ok {
+				for j := range Parameter.Structs {
+					h2s, s2h, err := parsing(decl, Parameter.Structs[j])
+					if err != nil {
+						et.Add(err)
+						continue
+					}
+					h = append(h, h2s)
+					s = append(s, s2h)
+				}
 			}
-			if !ok {
-				continue
-			}
-			h = append(h, h2s)
-			s = append(s, s2h)
 		}
 	}
 	if et.IsError() {
@@ -172,7 +173,7 @@ func run() error {
 	return ioutil.WriteFile(Parameter.OutputFilename, body(h, s), 0644)
 }
 
-func parsing(a *ast.File, str string) (h2s H2go, s2h S2html, ok bool, err error) {
+func parsing(a *ast.GenDecl, structName string) (h2s H2go, s2h S2html, err error) {
 	return
 }
 
@@ -187,11 +188,6 @@ func body(h2s []H2go, s2h []S2html) (b []byte) {
 // 	// parsing file
 //
 // 	// find information
-// 	for i := range f.Decls {
-// 		if decl, ok := f.Decls[i].(*ast.GenDecl); ok {
-// 			info(decl, name)
-// 		}
-// 	}
 //
 // 	if out == "" || par == "" {
 // 		continue
@@ -224,11 +220,6 @@ func body(h2s []H2go, s2h []S2html) (b []byte) {
 // 	out += "\n" + par
 //
 // 	filename = pwd + "/" + strings.ToLower(name) + "_gen.go"
-//
-// }
-//
-// 	return nil
-// }
 
 func info(decl *ast.GenDecl, name string) {
 	if decl.Tok != token.TYPE {
