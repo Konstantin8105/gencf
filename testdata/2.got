@@ -2,8 +2,8 @@ package test
 
 // TestStruct - struct of test data
 type TestStruct struct {
-	// internal paramenters
-	a, b, c, d int
+	// internal paramenter
+	a int
 
 	// Rvalue is exported struct field
 	Rvalue string
