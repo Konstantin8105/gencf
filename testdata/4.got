@@ -24,5 +24,12 @@ type TestStruct struct {
 		// with
 		// many clarifications
 		NestedItem4 float32
+
+
+		// ...
+		DoubleNested struct{
+			// very deep field
+			some_value float32
+		}
 	}
 }

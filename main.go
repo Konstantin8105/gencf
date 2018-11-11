@@ -231,9 +231,9 @@ func parsing(decl *ast.GenDecl, structName string) (err error) {
 	et := errors.New("Parsing errors:")
 	// ToHtml : header
 	Parameter.Source.WriteString(fmt.Sprintf(
-		"\nfunc (value %s) ToHtml() (out string) {\n", structName))
+		"\nfunc (value %s) toHtml(prefix string) (out string) {\n", structName))
 	for _, fs := range fl.Fields.List {
-		err = structToHtml(fs, structName)
+		err = structToHtml(fs, structName+".")
 		if err != nil {
 			et.Add(err)
 			continue
@@ -241,6 +241,11 @@ func parsing(decl *ast.GenDecl, structName string) (err error) {
 	}
 	// ToHtml : footer
 	Parameter.Source.WriteString("\treturn\n")
+	Parameter.Source.WriteString("}\n\n")
+
+	Parameter.Source.WriteString(fmt.Sprintf(
+		"\nfunc (value %s) ToHtml() (out string) {\n", structName))
+	Parameter.Source.WriteString(fmt.Sprintf("\treturn value.toHtml(\"%s.\")\n", structName))
 	Parameter.Source.WriteString("}\n\n")
 
 	for _, fs := range fl.Fields.List {
@@ -260,9 +265,8 @@ func parsing(decl *ast.GenDecl, structName string) (err error) {
 }
 
 type field struct {
-	Name      string
 	Docs      string
-	ValueName string
+	FieldName string
 }
 
 func (f *field) Parse(a *ast.Field, structName string) (err error) {
@@ -272,7 +276,7 @@ func (f *field) Parse(a *ast.Field, structName string) (err error) {
 		return
 	}
 
-	f.Name = structName + "." + a.Names[0].Name
+	f.FieldName = a.Names[0].Name
 
 	if a.Doc != nil {
 		for i := 0; i < len(a.Doc.List); i++ {
@@ -286,10 +290,10 @@ func (f *field) Parse(a *ast.Field, structName string) (err error) {
 		fmt.Fprintf(os.Stderr, "Struct `%s` haven`t documentation\n", structName)
 	}
 
-	f.Name = strconv.Quote(f.Name)
+	f.FieldName = strconv.Quote(f.FieldName)
 	f.Docs = strconv.Quote(f.Docs)
-	if len(f.Name) >= 2 {
-		f.Name = f.Name[1 : len(f.Name)-1]
+	if len(f.FieldName) >= 2 {
+		f.FieldName = f.FieldName[1 : len(f.FieldName)-1]
 	}
 	if len(f.Docs) >= 2 {
 		f.Docs = f.Docs[1 : len(f.Docs)-1]

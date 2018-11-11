@@ -7,6 +7,12 @@ type Se struct {
 
 	// f is ...
 	f float64
+
+	// external
+	r struct {
+		// o - d
+		o int
+	}
 }
 
 // TestStruct is ...

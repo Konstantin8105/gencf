@@ -23,22 +23,25 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 	}
 
 	var buf bytes.Buffer
+	Parameter.Source.WriteString("\n")
+	Parameter.Source.WriteString(fmt.Sprintf("	/"+"/ %v\n", f.FieldName)) // comment
+	// add docs
+	if f.Docs != "" {
+		Parameter.Source.WriteString(fmt.Sprintf(
+			"\n\n\tout += fmt.Sprintf(\"\\n<br><strong>%s</strong><br>\\n\")\n", f.Docs))
+	}
 
 	// imports
 	AddImport("fmt")
-
-	// add docs
-	if f.Docs != "" {
-		buf.WriteString(fmt.Sprintf(
-			"\n\n\tout += fmt.Sprintf(\"\\n<br><strong>%s</strong><br>\\n\")\n", f.Docs))
-	}
 
 	// convert types
 	switch v := a.Type.(type) {
 	case *ast.StructType:
 		// parse nested struct
+		Parameter.Source.WriteString(
+			fmt.Sprintf("// found nested struct : %s in %s", f.FieldName, structName))
 		for _, fss := range v.Fields.List {
-			err = structToHtml(fss, f.Name)
+			err = structToHtml(fss, structName+"."+f.FieldName+".")
 			if err != nil {
 				return
 			}
@@ -50,13 +53,14 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 		//      "\n%s :<br>\n<input type=\"text\" name=\"%s\" value=\"%s\"><br>\n",
 		//      "A is some value","P.A", fmt.Sprintf("%v",p.A))
 
-		// change name
-		index := strings.Index(f.Name, ".")
+		// imports
+		AddImport("fmt")
+
+		index := strings.Index(structName, ".")
 		if index < 0 {
-			err = fmt.Errorf("cannot find point of struct : %v", f.Name)
-			return
+			return fmt.Errorf("cannot find point : %s", structName)
 		}
-		f.ValueName = "value" + f.Name[index:]
+		f.FieldName = structName[index+1:] + f.FieldName
 
 		switch v.Name {
 		// Go`s basic types
@@ -69,13 +73,10 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 			"float32", "float64",
 			"complex64", "complex128":
 
-			// imports
-			AddImport("fmt")
-
 			// template
 			tmpl := `out += fmt.Sprintf(
-	"\n<input type=\"text\" name=\"{{ .Name }}\" value=\"%s\"><br>\n",
-	fmt.Sprintf("%v", {{ .ValueName }}))`
+	"\n<input type=\"text\" name=\"%s{{ .FieldName }}\" value=\"%s\"><br>\n",
+	prefix, fmt.Sprintf("%v", value.{{ .FieldName }}))`
 
 			t := template.New("Ident template")
 			if t, err = t.Parse(tmpl); err != nil {
@@ -86,15 +87,10 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 				return
 			}
 
-		default:
-
-			buf.WriteString(fmt.Sprintf("out += %s.ToHtml()\n", f.ValueName))
-			// ast.Print(token.NewFileSet(), a)
-
+		default: // user struct
+			buf.WriteString(
+				"out += value.toHtml(fmt.Sprintf(\"%s" + f.FieldName + ".\",prefix))")
 		}
-
-	// case *ast.StarExpr:
-	// TODO
 
 	// case *ast.ArrayType:
 	// TODO
@@ -104,8 +100,6 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 		return
 	}
 
-	Parameter.Source.WriteString("\n")
-	Parameter.Source.WriteString(fmt.Sprintf("	/"+"/ %v\n", f.Name)) // comment
 	Parameter.Source.WriteString(buf.String())
 	Parameter.Source.WriteString("\n\n\n")
 
