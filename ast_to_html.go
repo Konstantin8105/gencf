@@ -1,6 +1,9 @@
 package main
 
-import "go/ast"
+import (
+	"fmt"
+	"go/ast"
+)
 
 type S2html string
 
@@ -14,7 +17,8 @@ func (s *S2html) Parse(a *ast.Field, structName string) {
 
 	out := string(*s)
 	defer func() {
-		s = &S2html(out)
+		temp := S2html(out)
+		s = &temp
 	}()
 
 	// header
@@ -32,7 +36,7 @@ func (s *S2html) Parse(a *ast.Field, structName string) {
 			"\tout += fmt.Sprintf(\"\\n<br><strong>%s</strong><br>\\n\")\n", f.Docs)
 		for _, fss := range v.Fields.List {
 			var temp S2html
-			temp.Parse(fss, y.Name)
+			temp.Parse(fss, f.Name)
 			out += string(temp)
 		}
 	}

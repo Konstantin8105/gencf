@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-	"text/template"
 
 	"github.com/Konstantin8105/errors"
 )
@@ -226,6 +225,7 @@ func parsing(decl *ast.GenDecl, structName string) (h2s H2go, s2h S2html, err er
 	for _, fs := range fl.Fields.List {
 		for i := range ps {
 			ps[i].Parse(fs, structName)
+			fmt.Printf("> %#v\n", ps[i])
 		}
 	}
 	return
@@ -264,30 +264,31 @@ func (f *field) Parse(a *ast.Field, structName string) {
 	if len(a.Names) != 1 {
 		// Panic with debug information for understood
 		ast.Print(token.NewFileSet(), a)
-		panic("Too many names")
+		fmt.Fprintf(os.Stderr, "Too many names\n")
+		return
 	}
 
 	f.Name = structName + "." + a.Names[0].Name
 
 	if a.Doc != nil {
 		for i := 0; i < len(a.Doc.List); i++ {
-			y.Docs += a.Doc.List[i].Text[2:] // [2:] for remove words:"//","/*"
+			f.Docs += a.Doc.List[i].Text[2:] // [2:] for remove words:"//","/*"
 		}
-		y.Docs = strings.TrimSpace(y.Docs)
+		f.Docs = strings.TrimSpace(f.Docs)
 	}
 	// not allowable empty documentation
 	if len(f.Docs) == 0 {
 		// if docs is empty
-		fmt.Fprint(osStdout, "Struct `%s` haven`t documentation", structName)
+		fmt.Fprintf(os.Stderr, "Struct `%s` haven`t documentation\n", structName)
 	}
 
 	f.Name = strconv.Quote(f.Name)
 	f.Docs = strconv.Quote(f.Docs)
 	if len(f.Name) > 2 {
-		f.Name = y.Name[1 : len(f.Name)-1]
+		f.Name = f.Name[1 : len(f.Name)-1]
 	}
 	if len(f.Docs) > 2 {
-		f.Docs = y.Docs[1 : len(f.Docs)-1]
+		f.Docs = f.Docs[1 : len(f.Docs)-1]
 	}
 }
 
