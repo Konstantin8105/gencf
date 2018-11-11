@@ -2,3 +2,4 @@ package test
 
 // TestStruct is simple alias of float value
 type TestStruct float64
+
