@@ -4,16 +4,23 @@ import (
 	"bytes"
 	"fmt"
 	"go/ast"
+	"go/token"
 	"strings"
 	"text/template"
 )
 
 func structToHtml(a *ast.Field, structName string) (str string, err error) {
+	defer func() {
+		if err != nil {
+			ast.Print(token.NewFileSet(), a)
+		}
+	}()
+
 	var f field
 	f.Parse(a, structName)
 
 	// header
-	str += fmt.Sprintf("func (value %s) ToHtml() (out string) {\n", structName)
+	str += fmt.Sprintf("\nfunc (value %s) ToHtml() (out string) {\n", structName)
 	// footer
 	defer func() {
 		str += "\treturn\n"
@@ -23,8 +30,13 @@ func structToHtml(a *ast.Field, structName string) (str string, err error) {
 	// convert types
 	switch v := a.Type.(type) {
 	case *ast.StructType:
+		// imports
+		AddImport("fmt")
+
 		str += fmt.Sprintf(
 			"\tout += fmt.Sprintf(\"\\n<br><strong>%s</strong><br>\\n\")\n", f.Docs)
+
+		// parse nested struct
 		for _, fss := range v.Fields.List {
 			var s string
 			s, err = structToHtml(fss, f.Name)
@@ -47,10 +59,14 @@ func structToHtml(a *ast.Field, structName string) (str string, err error) {
 		}
 		f.ValueName = "value" + f.Name[index:]
 
+		// imports
+		AddImport("fmt")
+
+		// template
 		tmpl := `out += fmt.Sprintf(
-"\n{{ .Docs }} :<br>\n<input type=\"text\" name=\"{{ .Name }}\" value=\"%s\"><br>\n",
-fmt.Sprintf("%v", {{ .ValueName }}))
-`
+	"\n{{ .Docs }} :<br>\n<input type=\"text\" name=\"{{ .Name }}\" value=\"%s\"><br>\n",
+	fmt.Sprintf("%v", {{ .ValueName }}))
+	`
 
 		t := template.New("Ident template")
 		t, err = t.Parse(tmpl)
@@ -68,6 +84,12 @@ fmt.Sprintf("%v", {{ .ValueName }}))
 		str += fmt.Sprintf("	/"+"/ %v\n", f.Name)
 		str += buf.String()
 		str += "\n"
+
+	case *ast.StarExpr:
+		// TODO
+
+	case *ast.ArrayType:
+		// TODO
 
 	default:
 		err = fmt.Errorf("Type is not supported: %T", v)
