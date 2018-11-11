@@ -2,9 +2,7 @@ package main
 
 import "go/ast"
 
-type H2go string
-
-func (h H2go) String() (out string) {
+func HtmlToStruct(a *ast.Field, structName string) (str string, err error) {
 	// 	par = fmt.Sprintf("func (value *%s) FromHtml(r *http.Request) (err error) {\n", name) +
 	// 		"	et := errors.New(\"Errors of convert\")\n" +
 	// 		par
@@ -14,8 +12,6 @@ func (h H2go) String() (out string) {
 	// 	par += "	}\n"
 	// 	par += "	return\n"
 	// 	par += "}\n"
-	return
-}
 
-func (h *H2go) Parse(a *ast.Field, structName string) {
+	return
 }

@@ -5,39 +5,36 @@ import (
 	"go/ast"
 )
 
-type S2html string
-
-func (s S2html) String() (out string) {
-	return string(s)
-}
-
-func (s *S2html) Parse(a *ast.Field, structName string) {
+func structToHtml(a *ast.Field, structName string) (str string, err error) {
 	var f field
 	f.Parse(a, structName)
 
-	out := string(*s)
-	defer func() {
-		temp := S2html(out)
-		s = &temp
-	}()
-
 	// header
-	out += fmt.Sprintf("func (value %s) ToHtml() (out string) {\n", structName)
+	str += fmt.Sprintf("func (value %s) ToHtml() (out string) {\n", structName)
 	// footer
 	defer func() {
-		out += "	return\n"
-		out += "}\n"
+		str += "	return\n"
+		str += "}\n"
 	}()
 
 	// convert types
 	switch v := a.Type.(type) {
 	case *ast.StructType:
-		out += fmt.Sprintf(
+		str += fmt.Sprintf(
 			"\tout += fmt.Sprintf(\"\\n<br><strong>%s</strong><br>\\n\")\n", f.Docs)
 		for _, fss := range v.Fields.List {
-			var temp S2html
-			temp.Parse(fss, f.Name)
-			out += string(temp)
+			var s string
+			s, err = structToHtml(fss, f.Name)
+			if err != nil {
+				return
+			}
+			str += s
 		}
+
+	default:
+		err = fmt.Errorf("Type is not supported: %T", v)
+		return
 	}
+
+	return
 }
