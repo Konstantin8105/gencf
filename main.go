@@ -292,18 +292,6 @@ func (f *field) Parse(a *ast.Field, structName string) (_ string, err error) {
 	return "", nil
 }
 
-// func parse(basename string, fs *ast.Field) {
-//
-// 	// var out, par string
-// 	//
-// 	// y := struct {
-// 	// 	Name      string
-// 	// 	Docs      string
-// 	// 	ValueName string
-// 	// }{}
-//
-// 	switch v := fs.Type.(type) {
-//
 // 	case *ast.ArrayType:
 // 		// TODO specific
 // 		fmt.Println("Type is array of :", v.Elt.(*ast.Ident).Name)

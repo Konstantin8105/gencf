@@ -1,0 +1,7 @@
+package test
+
+type TestStruct struct {
+	S  []string
+	U  []uint
+	U8 []uint8
+}
