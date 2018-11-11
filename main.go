@@ -215,34 +215,34 @@ func parsing(decl *ast.GenDecl, structName string) (str string, err error) {
 		return
 	}
 
-	ast.Print(token.NewFileSet(), decl)
-
 	// is this struct
-	// fl, ok := tc.Type.(*ast.StructType)
-	// if !ok {
-	// 	err = fmt.Errorf("Not StructType type : %T", tc.Type)
-	// 	return
-	// }
+	fl, ok := tc.Type.(*ast.StructType)
+	if !ok {
+		err = fmt.Errorf("Not StructType type : %T", tc.Type)
+		return
+	}
 
 	// parsing by parts
 	et := errors.New("Parsing errors:")
-	ps := []func(a interface{}, structName string) (string, error){
-		structToHtml,
-		HtmlToStruct,
-	}
-	for i := range ps {
-		var s string
-		s, err = ps[i](tc, structName)
-
-		// TODO: remove
-		fmt.Println(s)
-		fmt.Println(err)
-
-		if err != nil {
-			et.Add(err)
-			continue
+	for _, fs := range fl.Fields.List {
+		ps := []func(a interface{}, structName string) (string, error){
+			structToHtml,
+			HtmlToStruct,
 		}
-		str += s
+		for i := range ps {
+			var s string
+			s, err = ps[i](fs, structName)
+
+			// TODO: remove
+			fmt.Println(s)
+			fmt.Println(err)
+
+			if err != nil {
+				et.Add(err)
+				continue
+			}
+			str += s
+		}
 	}
 	if et.IsError() {
 		err = et
@@ -251,45 +251,45 @@ func parsing(decl *ast.GenDecl, structName string) (str string, err error) {
 	return
 }
 
-// type field struct {
-// 	Name      string
-// 	Docs      string
-// 	ValueName string
-// }
-//
-// func (f *field) Parse(a *ast.Field, structName string) (_ string, err error) {
-// 	if len(a.Names) != 1 {
-// 		// Panic with debug information for understood
-// 		ast.Print(token.NewFileSet(), a)
-// 		fmt.Fprintf(os.Stderr, "Too many names\n")
-// 		return
-// 	}
-//
-// 	f.Name = structName + "." + a.Names[0].Name
-//
-// 	if a.Doc != nil {
-// 		for i := 0; i < len(a.Doc.List); i++ {
-// 			f.Docs += a.Doc.List[i].Text[2:] // [2:] for remove words:"//","/*"
-// 		}
-// 		f.Docs = strings.TrimSpace(f.Docs)
-// 	}
-// 	// not allowable empty documentation
-// 	if len(f.Docs) == 0 {
-// 		// if docs is empty
-// 		fmt.Fprintf(os.Stderr, "Struct `%s` haven`t documentation\n", structName)
-// 	}
-//
-// 	f.Name = strconv.Quote(f.Name)
-// 	f.Docs = strconv.Quote(f.Docs)
-// 	if len(f.Name) >= 2 {
-// 		f.Name = f.Name[1 : len(f.Name)-1]
-// 	}
-// 	if len(f.Docs) >= 2 {
-// 		f.Docs = f.Docs[1 : len(f.Docs)-1]
-// 	}
-//
-// 	return "", nil
-// }
+type field struct {
+	Name      string
+	Docs      string
+	ValueName string
+}
+
+func (f *field) Parse(a *ast.Field, structName string) (_ string, err error) {
+	if len(a.Names) != 1 {
+		// Panic with debug information for understood
+		ast.Print(token.NewFileSet(), a)
+		fmt.Fprintf(os.Stderr, "Too many names\n")
+		return
+	}
+
+	f.Name = structName + "." + a.Names[0].Name
+
+	if a.Doc != nil {
+		for i := 0; i < len(a.Doc.List); i++ {
+			f.Docs += a.Doc.List[i].Text[2:] // [2:] for remove words:"//","/*"
+		}
+		f.Docs = strings.TrimSpace(f.Docs)
+	}
+	// not allowable empty documentation
+	if len(f.Docs) == 0 {
+		// if docs is empty
+		fmt.Fprintf(os.Stderr, "Struct `%s` haven`t documentation\n", structName)
+	}
+
+	f.Name = strconv.Quote(f.Name)
+	f.Docs = strconv.Quote(f.Docs)
+	if len(f.Name) >= 2 {
+		f.Name = f.Name[1 : len(f.Name)-1]
+	}
+	if len(f.Docs) >= 2 {
+		f.Docs = f.Docs[1 : len(f.Docs)-1]
+	}
+
+	return "", nil
+}
 
 func header() (b []byte) {
 	var buf bytes.Buffer
