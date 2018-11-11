@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"go/ast"
+	"strings"
+	"text/template"
 )
 
 func structToHtml(a *ast.Field, structName string) (str string, err error) {
@@ -13,8 +16,8 @@ func structToHtml(a *ast.Field, structName string) (str string, err error) {
 	str += fmt.Sprintf("func (value %s) ToHtml() (out string) {\n", structName)
 	// footer
 	defer func() {
-		str += "	return\n"
-		str += "}\n"
+		str += "\treturn\n"
+		str += "}\n\n"
 	}()
 
 	// convert types
@@ -31,7 +34,40 @@ func structToHtml(a *ast.Field, structName string) (str string, err error) {
 			str += s
 		}
 
-		// 	case *ast.ArrayType:
+	case *ast.Ident:
+		// Example of html form:
+		//      out += fmt.Printf(
+		//      "\n%s :<br>\n<input type=\"text\" name=\"%s\" value=\"%s\"><br>\n",
+		//      "A is some value","P.A", fmt.Sprintf("%v",p.A))
+
+		index := strings.Index(f.Name, ".")
+		if index < 0 {
+			err = fmt.Errorf("cannot find point of struct : %v", f.Name)
+			return
+		}
+		f.ValueName = "value" + f.Name[index:]
+
+		tmpl := `out += fmt.Sprintf(
+"\n{{ .Docs }} :<br>\n<input type=\"text\" name=\"{{ .Name }}\" value=\"%s\"><br>\n",
+fmt.Sprintf("%v", {{ .ValueName }}))
+`
+
+		t := template.New("Ident template")
+		t, err = t.Parse(tmpl)
+		if err != nil {
+			return
+		}
+
+		var buf bytes.Buffer
+		err = t.Execute(&buf, f)
+		if err != nil {
+			return
+		}
+
+		str += "\n"
+		str += fmt.Sprintf("	/"+"/ %v\n", f.Name)
+		str += buf.String()
+		str += "\n"
 
 	default:
 		err = fmt.Errorf("Type is not supported: %T", v)

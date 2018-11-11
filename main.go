@@ -247,7 +247,9 @@ func parsing(decl *ast.GenDecl, structName string) (str string, err error) {
 			str += s
 		}
 	}
-	err = et
+	if et.IsError() {
+		err = et
+	}
 
 	return
 }
@@ -282,147 +284,12 @@ func (f *field) Parse(a *ast.Field, structName string) (_ string, err error) {
 
 	f.Name = strconv.Quote(f.Name)
 	f.Docs = strconv.Quote(f.Docs)
-	if len(f.Name) > 2 {
+	if len(f.Name) >= 2 {
 		f.Name = f.Name[1 : len(f.Name)-1]
 	}
-	if len(f.Docs) > 2 {
+	if len(f.Docs) >= 2 {
 		f.Docs = f.Docs[1 : len(f.Docs)-1]
 	}
 
 	return "", nil
 }
-
-// 	case *ast.Ident:
-// 		// Example of html form:
-// 		//      out += fmt.Printf(
-// 		//      "\n%s :<br>\n<input type=\"text\" name=\"%s\" value=\"%s\"><br>\n",
-// 		//      "A is some value","P.A", fmt.Sprintf("%v",p.A))
-//
-// 		index := strings.Index(y.Name, ".")
-// 		if index < 0 {
-// 			panic(y.Name)
-// 		}
-// 		y.ValueName = "value" + y.Name[index:]
-//
-// 		tmpl := `	out += fmt.Sprintf(
-// 		"\n{{ .Docs }} :<br>\n<input type=\"text\" name=\"{{ .Name }}\" value=\"%s\"><br>\n",
-// 		fmt.Sprintf("%v", {{ .ValueName }}))`
-//
-// 		t := template.New("Person template")
-//
-// 		t, err := t.Parse(tmpl)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-//
-// 		var buf bytes.Buffer
-// 		err = t.Execute(&buf, y)
-// 		if err != nil {
-// 			panic(err)
-// 		}
-//
-// 		out += "\n"
-// 		out += fmt.Sprintf("	/"+"/ %v\n", y.Name)
-// 		out += buf.String()
-// 		out += "\n"
-//
-// 		// -----------------
-// 		buf.Reset()
-// 		switch v.Name {
-//
-// 		// float64
-// 		case "float64":
-// 			tmpl = `
-// 	{
-// 		// check if exist
-// 		if str, ok := r.Form["{{ .Name }}"]; ok{
-// 			if len(str) == 1 {
-// 				v, err := strconv.ParseFloat(str[0],64)
-// 				if err != nil {
-// 					et.Add(err)
-// 				} else {
-// 					{{ .ValueName }} = v
-// 				}
-// 			}
-// 		}
-// 	}
-// `
-// 			t := template.New("Person template")
-//
-// 			t, err := t.Parse(tmpl)
-// 			if err != nil {
-// 				panic(err)
-// 			}
-//
-// 			err = t.Execute(&buf, y)
-// 			if err != nil {
-// 				panic(err)
-// 			}
-//
-// 		// string
-// 		case "string":
-// 			tmpl = `
-// 	{
-// 		if str, ok := r.Form["{{ .Name }}"]; ok{
-// 			if len(str) == 1 {
-// 				{{ .ValueName }} = str[0]
-// 			}
-// 		}
-// 	}
-// `
-// 			t := template.New("Person template")
-//
-// 			t, err := t.Parse(tmpl)
-// 			if err != nil {
-// 				panic(err)
-// 			}
-//
-// 			err = t.Execute(&buf, y)
-// 			if err != nil {
-// 				panic(err)
-// 			}
-//
-// 		// int
-// 		case "int":
-// 			tmpl = `
-// 	{
-// 		// check if exist
-// 		if str, ok := r.Form["{{ .Name }}"]; ok{
-// 			if len(str) == 1 {
-// 				v, err := strconv.ParseInt(str[0],10,64)
-// 				if err != nil {
-// 					et.Add(err)
-// 				} else {
-// 					{{ .ValueName }} = int(v)
-// 				}
-// 			}
-// 		}
-// 	}
-// `
-// 			t := template.New("Person template")
-//
-// 			t, err := t.Parse(tmpl)
-// 			if err != nil {
-// 				panic(err)
-// 			}
-//
-// 			err = t.Execute(&buf, y)
-// 			if err != nil {
-// 				panic(err)
-// 			}
-//
-// 		default:
-// 			fmt.Println("> Type >", v.Name)
-// 		}
-//
-// 		par += "\n"
-// 		par += fmt.Sprintf("	/"+"/ Name : %v\n", y.Name)
-// 		par += fmt.Sprintf("	/"+"/ Type : %v\n", v.Name)
-// 		par += buf.String()
-// 		par += "\n"
-//
-// 	default:
-// 		// debug
-// 		ast.Print(token.NewFileSet(), fs.Type)
-// 	}
-// }

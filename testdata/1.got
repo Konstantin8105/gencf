@@ -1,6 +1,6 @@
 package test
 
 type TestStruct struct {
-	int     a
-	float64 b
+	a int
+	b float64
 }
