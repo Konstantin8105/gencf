@@ -1,12 +1,28 @@
 package test
 
+// Main struct of fields
 type TestStruct struct {
+	// Some field without
+	// name of field
 	Field string
 
+	// NestedStruct with some documentation
 	NestedStruct struct {
+		// NestedItem1 is first value
 		NestedItem1 int
+
+		// NestedItem2 is second value
 		NestedItem2 byte
+
+		// NestedItem3 in struct
 		NestedItem3 uint8
+
+		// NestedItem4 have
+		// many
+		// lines
+		// of documentation
+		// with
+		// many clarifications
 		NestedItem4 float32
 	}
 }

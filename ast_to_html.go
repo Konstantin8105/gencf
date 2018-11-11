@@ -19,31 +19,21 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 	var f field
 	f.Parse(a, structName)
 
-	// header
-	str += fmt.Sprintf("\nfunc (value %s) ToHtml() (out string) {\n", structName)
-	// footer
-	defer func() {
-		str += "\treturn\n"
-		str += "}\n\n"
-	}()
-
 	// convert types
 	switch v := a.Type.(type) {
 	case *ast.StructType:
 		// imports
 		AddImport("fmt")
 
-		str += fmt.Sprintf(
-			"\tout += fmt.Sprintf(\"\\n<br><strong>%s</strong><br>\\n\")\n", f.Docs)
+		Parameter.Source.WriteString(fmt.Sprintf(
+			"\tout += fmt.Sprintf(\"\\n<br><strong>%s</strong><br>\\n\")\n", f.Docs))
 
 		// parse nested struct
 		for _, fss := range v.Fields.List {
-			var s string
-			s, err = structToHtml(fss, f.Name)
+			err = structToHtml(fss, f.Name)
 			if err != nil {
 				return
 			}
-			str += s
 		}
 
 	case *ast.Ident:
@@ -80,16 +70,16 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 			return
 		}
 
-		str += "\n"
-		str += fmt.Sprintf("	/"+"/ %v\n", f.Name)
-		str += buf.String()
-		str += "\n"
+		Parameter.Source.WriteString("\n")
+		Parameter.Source.WriteString(fmt.Sprintf("	/"+"/ %v\n", f.Name))
+		Parameter.Source.WriteString(buf.String())
+		Parameter.Source.WriteString("\n")
 
-	case *ast.StarExpr:
-		// TODO
+	// case *ast.StarExpr:
+	// TODO
 
-	case *ast.ArrayType:
-		// TODO
+	// case *ast.ArrayType:
+	// TODO
 
 	default:
 		err = fmt.Errorf("Type is not supported: %T", v)

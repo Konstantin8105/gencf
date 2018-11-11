@@ -229,19 +229,29 @@ func parsing(decl *ast.GenDecl, structName string) (err error) {
 
 	// parsing by parts
 	et := errors.New("Parsing errors:")
+	// ToHtml : header
+	Parameter.Source.WriteString(fmt.Sprintf(
+		"\nfunc (value %s) ToHtml() (out string) {\n", structName))
 	for _, fs := range fl.Fields.List {
-		ps := []func(a *ast.Field, structName string) error{
-			structToHtml,
-			HtmlToStruct,
-		}
-		for i := range ps {
-			err = ps[i](fs, structName)
-			if err != nil {
-				et.Add(err)
-				continue
-			}
+		err = structToHtml(fs, structName)
+		if err != nil {
+			et.Add(err)
+			continue
 		}
 	}
+	// ToHtml : footer
+	Parameter.Source.WriteString("\treturn\n")
+	Parameter.Source.WriteString("}\n\n")
+
+	for _, fs := range fl.Fields.List {
+		// ToStruct
+		err = HtmlToStruct(fs, structName)
+		if err != nil {
+			et.Add(err)
+			continue
+		}
+	}
+
 	if et.IsError() {
 		err = et
 	}
