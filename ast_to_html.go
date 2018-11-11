@@ -22,15 +22,20 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 		return
 	}
 
+	var buf bytes.Buffer
+
+	// imports
+	AddImport("fmt")
+
+	// add docs
+	if f.Docs != "" {
+		buf.WriteString(fmt.Sprintf(
+			"\n\n\tout += fmt.Sprintf(\"\\n<br><strong>%s</strong><br>\\n\")\n", f.Docs))
+	}
+
 	// convert types
 	switch v := a.Type.(type) {
 	case *ast.StructType:
-		// imports
-		AddImport("fmt")
-
-		Parameter.Source.WriteString(fmt.Sprintf(
-			"\tout += fmt.Sprintf(\"\\n<br><strong>%s</strong><br>\\n\")\n", f.Docs))
-
 		// parse nested struct
 		for _, fss := range v.Fields.List {
 			err = structToHtml(fss, f.Name)
@@ -45,6 +50,7 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 		//      "\n%s :<br>\n<input type=\"text\" name=\"%s\" value=\"%s\"><br>\n",
 		//      "A is some value","P.A", fmt.Sprintf("%v",p.A))
 
+		// change name
 		index := strings.Index(f.Name, ".")
 		if index < 0 {
 			err = fmt.Errorf("cannot find point of struct : %v", f.Name)
@@ -52,31 +58,40 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 		}
 		f.ValueName = "value" + f.Name[index:]
 
-		// imports
-		AddImport("fmt")
+		switch v.Name {
+		// Go`s basic types
+		case "bool",
+			"string",
+			"int", "int8", "int16", " int32", "int64",
+			"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
+			"byte", // alias for uint8
+			"rune", // alias for int32 represents a Unicode code point
+			"float32", "float64",
+			"complex64", "complex128":
 
-		// template
-		tmpl := `out += fmt.Sprintf(
-	"\n{{ .Docs }} :<br>\n<input type=\"text\" name=\"{{ .Name }}\" value=\"%s\"><br>\n",
-	fmt.Sprintf("%v", {{ .ValueName }}))
-	`
+			// imports
+			AddImport("fmt")
 
-		t := template.New("Ident template")
-		t, err = t.Parse(tmpl)
-		if err != nil {
-			return
+			// template
+			tmpl := `out += fmt.Sprintf(
+	"\n<input type=\"text\" name=\"{{ .Name }}\" value=\"%s\"><br>\n",
+	fmt.Sprintf("%v", {{ .ValueName }}))`
+
+			t := template.New("Ident template")
+			if t, err = t.Parse(tmpl); err != nil {
+				return
+			}
+
+			if err = t.Execute(&buf, f); err != nil {
+				return
+			}
+
+		default:
+
+			buf.WriteString(fmt.Sprintf("out += %s.ToHtml()\n", f.ValueName))
+			// ast.Print(token.NewFileSet(), a)
+
 		}
-
-		var buf bytes.Buffer
-		err = t.Execute(&buf, f)
-		if err != nil {
-			return
-		}
-
-		Parameter.Source.WriteString("\n")
-		Parameter.Source.WriteString(fmt.Sprintf("	/"+"/ %v\n", f.Name))
-		Parameter.Source.WriteString(buf.String())
-		Parameter.Source.WriteString("\n")
 
 	// case *ast.StarExpr:
 	// TODO
@@ -88,6 +103,11 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 		err = fmt.Errorf("Type is not supported: %T", v)
 		return
 	}
+
+	Parameter.Source.WriteString("\n")
+	Parameter.Source.WriteString(fmt.Sprintf("	/"+"/ %v\n", f.Name)) // comment
+	Parameter.Source.WriteString(buf.String())
+	Parameter.Source.WriteString("\n\n\n")
 
 	return
 }

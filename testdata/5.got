@@ -1,10 +1,16 @@
 package test
 
+// Se is ...
 type Se struct {
+	// s is ...
 	s string
+
+	// f is ...
 	f float64
 }
 
+// TestStruct is ...
 type TestStruct struct {
+	// seValue is ...
 	seValue   Se
 }

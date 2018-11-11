@@ -20,7 +20,7 @@ func TestRun(t *testing.T) {
 			ResetParameter()
 			Parameter.InputFilename = []string{tf}
 			Parameter.OutputFilename = tf[:len(tf)-4] + ".gen.got"
-			Parameter.Structs = []string{"TestStruct"}
+			Parameter.Structs = []string{"TestStruct", "Se"}
 
 			err := run()
 			if err != nil {

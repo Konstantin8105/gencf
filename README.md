@@ -2,8 +2,21 @@
 Generate html form from golang struct and return...
 
 
-#### Some code is not support
+### Names in HTML form
 
+At the begin of name - `NameOfStruct.` with point at the end.
+
+Internal anonymous struct `InternalStruct.` with point at the end.
+
+Name  | Description | Example
+--- | --- | ---
+Name of struct | First element of name. Point at the end. | `NameOfStruct.` 
+Field | Field with Go type, for example : `int`, uint`, `float32`,...  | `Field`
+Field | Field with user type(struct). Point at the end | `Field.`
+Field [] | Field is slice of Go type, for example : `int`, uint`, `float32`,... In square index of slice | `Field[1]`
+Field [] | Field is slice of user type(struct). In square index of slice. Point at the end. | `Field[1].`
+
+#### Some code is not support
 
 Alias:
 

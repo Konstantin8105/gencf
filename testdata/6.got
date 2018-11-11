@@ -1,8 +1,17 @@
 package test
 
+type Se struct {
+	a int
+	s string
+}
+
 type TestStruct struct {
 	S  []string
 	U  []uint
 	U8 []uint8
+
+	// Slice of structs
+	sos []Se
+
 	a int
 }
