@@ -17,7 +17,10 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 	}()
 
 	var f field
-	f.Parse(a, structName)
+	err = f.Parse(a, structName)
+	if err != nil {
+		return
+	}
 
 	// convert types
 	switch v := a.Type.(type) {

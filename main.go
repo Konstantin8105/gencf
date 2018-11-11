@@ -265,11 +265,10 @@ type field struct {
 	ValueName string
 }
 
-func (f *field) Parse(a *ast.Field, structName string) (_ string, err error) {
+func (f *field) Parse(a *ast.Field, structName string) (err error) {
 	if len(a.Names) != 1 {
 		// Panic with debug information for understood
-		ast.Print(token.NewFileSet(), a)
-		fmt.Fprintf(os.Stderr, "Too many names\n")
+		err = fmt.Errorf("Too many names\n")
 		return
 	}
 
@@ -296,7 +295,7 @@ func (f *field) Parse(a *ast.Field, structName string) (_ string, err error) {
 		f.Docs = f.Docs[1 : len(f.Docs)-1]
 	}
 
-	return "", nil
+	return nil
 }
 
 func header() (b []byte) {
