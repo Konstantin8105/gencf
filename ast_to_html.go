@@ -16,19 +16,27 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 		}
 	}()
 
-	var f field
-	err = f.Parse(a, structName)
-	if err != nil {
-		return
+	f2 := struct {
+		field
+		FieldNameWithFirstPoint string
+	}{}
+	{
+		var f field
+		err = f.Parse(a, structName)
+		if err != nil {
+			return
+		}
+		f2.FieldName = f.FieldName
+		f2.Docs = f.Docs
 	}
 
 	var buf bytes.Buffer
 	Parameter.Source.WriteString("\n")
-	Parameter.Source.WriteString(fmt.Sprintf("	/"+"/ %v\n", f.FieldName)) // comment
+	Parameter.Source.WriteString(fmt.Sprintf("	/"+"/ %v\n", structName+f2.FieldName)) // comment
 	// add docs
-	if f.Docs != "" {
+	if f2.Docs != "" {
 		Parameter.Source.WriteString(fmt.Sprintf(
-			"\n\n\tout += fmt.Sprintf(\"\\n<br><strong>%s</strong><br>\\n\")\n", f.Docs))
+			"\n\n\tout += fmt.Sprintf(\"\\n<br><strong>%s</strong><br>\\n\")\n", f2.Docs))
 	}
 
 	// imports
@@ -38,29 +46,23 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 	switch v := a.Type.(type) {
 	case *ast.StructType:
 		// parse nested struct
-		Parameter.Source.WriteString(
-			fmt.Sprintf("// found nested struct : %s in %s", f.FieldName, structName))
 		for _, fss := range v.Fields.List {
-			err = structToHtml(fss, structName+"."+f.FieldName+".")
+			err = structToHtml(fss, structName+f2.FieldName+".")
 			if err != nil {
 				return
 			}
 		}
 
 	case *ast.Ident:
-		// Example of html form:
-		//      out += fmt.Printf(
-		//      "\n%s :<br>\n<input type=\"text\" name=\"%s\" value=\"%s\"><br>\n",
-		//      "A is some value","P.A", fmt.Sprintf("%v",p.A))
-
-		// imports
-		AddImport("fmt")
-
 		index := strings.Index(structName, ".")
 		if index < 0 {
 			return fmt.Errorf("cannot find point : %s", structName)
 		}
-		f.FieldName = structName[index+1:] + f.FieldName
+		{
+			fn := f2.FieldName
+			f2.FieldName = structName[index:] + fn
+			f2.FieldNameWithFirstPoint = structName[index+1:] + fn
+		}
 
 		switch v.Name {
 		// Go`s basic types
@@ -73,23 +75,26 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 			"float32", "float64",
 			"complex64", "complex128":
 
+			// imports
+			AddImport("fmt")
+
 			// template
 			tmpl := `out += fmt.Sprintf(
-	"\n<input type=\"text\" name=\"%s{{ .FieldName }}\" value=\"%s\"><br>\n",
-	prefix, fmt.Sprintf("%v", value.{{ .FieldName }}))`
+	"\n<input type=\"text\" name=\"%s{{ .FieldNameWithFirstPoint }}\" value=\"%s\"><br>\n",
+	prefix, fmt.Sprintf("%v", value{{ .FieldName }}))`
 
 			t := template.New("Ident template")
 			if t, err = t.Parse(tmpl); err != nil {
 				return
 			}
 
-			if err = t.Execute(&buf, f); err != nil {
+			if err = t.Execute(&buf, f2); err != nil {
 				return
 			}
 
 		default: // user struct
 			buf.WriteString(
-				"out += value.toHtml(fmt.Sprintf(\"%s" + f.FieldName + ".\",prefix))")
+				"out += value.toHtml(fmt.Sprintf(\"%s" + f2.FieldNameWithFirstPoint + ".\",prefix))")
 		}
 
 	// case *ast.ArrayType:
