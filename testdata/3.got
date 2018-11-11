@@ -1,9 +1,8 @@
 package test
 
 // TestStruct is simple alias of float value
-type TestStruct {
+type TestStruct struct {
 	// One text
 	dd float64
 	d  float64
 }
-
