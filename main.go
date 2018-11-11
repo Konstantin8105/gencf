@@ -265,8 +265,12 @@ func parsing(decl *ast.GenDecl, structName string) (err error) {
 }
 
 type field struct {
-	Docs      string
-	FieldName string
+	// asd.ert.qwe
+	StructName              string // asd
+	FieldName               string // .ert.qwe
+	FieldNameWithFirstPoint string //  ert.qwe
+
+	Docs string
 }
 
 func (f *field) Parse(a *ast.Field, structName string) (err error) {
@@ -290,14 +294,18 @@ func (f *field) Parse(a *ast.Field, structName string) (err error) {
 		fmt.Fprintf(os.Stderr, "Struct `%s` haven`t documentation\n", structName)
 	}
 
-	f.FieldName = strconv.Quote(f.FieldName)
 	f.Docs = strconv.Quote(f.Docs)
-	if len(f.FieldName) >= 2 {
-		f.FieldName = f.FieldName[1 : len(f.FieldName)-1]
-	}
 	if len(f.Docs) >= 2 {
 		f.Docs = f.Docs[1 : len(f.Docs)-1]
 	}
+	f.FieldNameWithFirstPoint = structName + f.FieldName
+	index := strings.Index(f.FieldNameWithFirstPoint, ".")
+	if index < 0 {
+		return fmt.Errorf("cannot find point in : %s", f.FieldNameWithFirstPoint)
+	}
+	f.StructName = f.FieldNameWithFirstPoint[:index] + "."
+	f.FieldNameWithFirstPoint = f.FieldNameWithFirstPoint[index:]
+	f.FieldName = f.FieldNameWithFirstPoint[1:]
 
 	return nil
 }
