@@ -292,10 +292,6 @@ func (f *field) Parse(a *ast.Field, structName string) (_ string, err error) {
 	return "", nil
 }
 
-// 	case *ast.ArrayType:
-// 		// TODO specific
-// 		fmt.Println("Type is array of :", v.Elt.(*ast.Ident).Name)
-//
 // 	case *ast.Ident:
 // 		// Example of html form:
 // 		//      out += fmt.Printf(

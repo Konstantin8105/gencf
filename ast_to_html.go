@@ -31,6 +31,8 @@ func structToHtml(a *ast.Field, structName string) (str string, err error) {
 			str += s
 		}
 
+		// 	case *ast.ArrayType:
+
 	default:
 		err = fmt.Errorf("Type is not supported: %T", v)
 		return
