@@ -4,10 +4,6 @@ Generate html form from golang struct and return...
 
 ### Names in HTML form
 
-At the begin of name - `NameOfStruct.` with point at the end.
-
-Internal anonymous struct `InternalStruct.` with point at the end.
-
 Name  | Description | Example
 --- | --- | ---
 Name of struct | First element of name. Point at the end. | `NameOfStruct.` 
