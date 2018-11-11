@@ -12,6 +12,28 @@ Field | Field with user type(struct). Point at the end | `Field.`
 Field [] | Field is slice of Go type, for example : `int`, `uint`, `float32`,... In square index of slice | `Field[1]`
 Field [] | Field is slice of user type(struct). In square index of slice. Point at the end. | `Field[1].`
 
+Example:
+
+For name `"pool.dream[1].son.line"` so struct look like that:
+```
+type pool struct{
+	...
+	dream []Q
+	...
+}
+
+type Q struct{
+	...
+	son struct{
+		...
+		line int
+		...
+	}
+	...
+}
+```
+
+
 #### Some code is not support
 
 Alias:
@@ -38,5 +60,23 @@ type A struct{
 }
 type B struct{
 	a *A
+}
+```
+
+Slice of anonymous struct:
+```golang
+type A struct{
+	a []struct{
+		b int
+	}
+}
+```
+
+Array of anonymous struct:
+```golang
+type A struct{
+	a [256]struct{
+		b int
+	}
 }
 ```
