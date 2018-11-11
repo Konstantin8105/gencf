@@ -11,6 +11,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
+	"strings"
 
 	"github.com/Konstantin8105/errors"
 )
@@ -225,7 +227,7 @@ func parsing(decl *ast.GenDecl, structName string) (str string, err error) {
 	// parsing by parts
 	et := errors.New("Parsing errors:")
 	for _, fs := range fl.Fields.List {
-		ps := []func(a interface{}, structName string) (string, error){
+		ps := []func(a *ast.Field, structName string) (string, error){
 			structToHtml,
 			HtmlToStruct,
 		}
