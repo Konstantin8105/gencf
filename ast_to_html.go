@@ -9,7 +9,7 @@ import (
 	"text/template"
 )
 
-func structToHtml(a *ast.Field, structName string) (str string, err error) {
+func structToHtml(a *ast.Field, structName string) (err error) {
 	defer func() {
 		if err != nil {
 			ast.Print(token.NewFileSet(), a)

@@ -36,6 +36,9 @@ var Parameter = struct {
 	OutputFilename string
 	Structs        []string
 	PackageName    string
+
+	// result source
+	Source bytes.Buffer
 }{}
 
 var imports = map[string]bool{}
@@ -49,6 +52,8 @@ func ResetParameter() {
 	Parameter.OutputFilename = ""
 	Parameter.Structs = []string{}
 	Parameter.PackageName = "main"
+
+	Parameter.Source.Reset()
 }
 
 // pipe for outpur information
@@ -159,7 +164,6 @@ func run() error {
 
 	// parsing to HTML, Go
 	et.Name = "Parsing go to html, html to go"
-	var buf bytes.Buffer
 
 	for i := range files {
 		for k := range files[i].Decls {
@@ -168,12 +172,11 @@ func run() error {
 				continue
 			}
 			for j := range Parameter.Structs {
-				str, err := parsing(decl, Parameter.Structs[j])
+				err := parsing(decl, Parameter.Structs[j])
 				if err != nil {
 					et.Add(err)
 					continue
 				}
-				buf.WriteString(str)
 			}
 		}
 	}
@@ -189,7 +192,7 @@ func run() error {
 		}
 	}
 
-	err = ioutil.WriteFile(Parameter.OutputFilename, append(header(), buf.Bytes()...), 0644)
+	err = ioutil.WriteFile(Parameter.OutputFilename, append(header(), Parameter.Source.Bytes()...), 0644)
 	if err != nil {
 		return err
 	}
@@ -201,7 +204,7 @@ func run() error {
 	return nil
 }
 
-func parsing(decl *ast.GenDecl, structName string) (str string, err error) {
+func parsing(decl *ast.GenDecl, structName string) (err error) {
 	// check : is this ast have struct name
 	if decl.Tok != token.TYPE {
 		return
@@ -227,23 +230,16 @@ func parsing(decl *ast.GenDecl, structName string) (str string, err error) {
 	// parsing by parts
 	et := errors.New("Parsing errors:")
 	for _, fs := range fl.Fields.List {
-		ps := []func(a *ast.Field, structName string) (string, error){
+		ps := []func(a *ast.Field, structName string) error{
 			structToHtml,
 			HtmlToStruct,
 		}
 		for i := range ps {
-			var s string
-			s, err = ps[i](fs, structName)
-
-			// TODO: remove
-			fmt.Println(s)
-			fmt.Println(err)
-
+			err = ps[i](fs, structName)
 			if err != nil {
 				et.Add(err)
 				continue
 			}
-			str += s
 		}
 	}
 	if et.IsError() {
