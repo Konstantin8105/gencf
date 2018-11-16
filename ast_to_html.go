@@ -18,7 +18,7 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 	var f field
 	err = f.Parse(a, structName)
 	if err != nil {
-		return
+		return fmt.Errorf("Field: %v\n%v", f, err)
 	}
 
 	var buf bytes.Buffer
@@ -78,8 +78,95 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 				"out += value.toHtml(fmt.Sprintf(\"%s" + f.FieldName + ".\",prefix))")
 		}
 
-	// case *ast.ArrayType:
-	// TODO
+	case *ast.ArrayType:
+		// Example
+		//
+		// *ast.ArrayType {
+		// .  Lbrack: -
+		// .  Elt: *ast.Ident {
+		// .  .  NamePos: -
+		// .  .  Name: "string"
+		// .  }
+		// }
+		switch v.Elt.(*ast.Ident).Name {
+		// Go`s basic types
+		case "bool",
+			"string",
+			"int", "int8", "int16", " int32", "int64",
+			"uint", "uint8", "uint16", "uint32", "uint64", "uintptr",
+			"byte", // alias for uint8
+			"rune", // alias for int32 represents a Unicode code point
+			"float32", "float64",
+			"complex64", "complex128":
+
+			// imports
+			AddImport("fmt")
+
+			// template
+			tmpl := `
+	// 
+	// Exist elements of field: {{ .FieldName }}
+	//
+	for i := range value{{ .FieldNameWithFirstPoint }}{
+		out += fmt.Sprintf("Data %d<br>\n",i)
+		out += fmt.Sprintf(
+			"\n<input type=\"text\" name=\"%s{{ .FieldName }}[%d]\" value=\"%s\"><br>\n",
+			prefix,i, fmt.Sprintf("%v", value{{ .FieldNameWithFirstPoint }}))
+	}
+
+	//
+	// Array script of : {{ .FieldName }} 
+	//
+	out += "<button type=\"button\" OnClick=\"add{{ .FieldName }}()\">+</button>\n"
+	out += fmt.Sprintf("<br id=\"breakLine%d{{ .FieldName }}\">\n",len(value{{ .FieldNameWithFirstPoint }}))
+	out += "<script>\n"
+	out += fmt.Sprintf("var initVal{{ .FieldName }} = %d;\n",len(value{{ .FieldNameWithFirstPoint}}))
+	out += "\n"
+
+	out += "function insertAfter{{ .FieldName }}(elem, refElem) { \n"
+	out += "  var parent = refElem.parentNode; \n"
+	out += "  var next = refElem.nextSibling; \n"
+	out += "  if (next) { \n"
+	out += "    return parent.insertBefore(elem, next); \n"
+	out += "  } else { \n"
+	out += "    return parent.appendChild(elem); \n"
+	out += "  } \n"
+	out += "} \n"
+
+	out += "function createEl{{ .FieldName }}(context) { \n"
+	out += "	// create input\n"
+	out += "	var el = document.createElement(\"input\"); \n"
+	out += "	el.type = \"text\"; \n"
+	out += "	el.name = \"{{ .StructName }}{{ .FieldName }}[\"+initVal+\"]\"; \n"
+	out += "	initVal++; \n"
+	out += "	insertAfter{{ .FieldName }}(el,context); \n"
+	out += "	// create label\n"
+	out += "	var label = document.createElement(\"br\");\n"
+	out += "	label.id = \"breakLine\" + initVal{{ .FieldName }} + \"{{ .FieldName }}\"\n";
+	out += "	insertAfter{{ .FieldName }} (label, context);"
+	out += " } \n"
+
+	out += "function add{{ .FieldName }}() { \n"
+	out += "\t createEl{{ .FieldName }}(document.getElementById('breakLine' + initVal{{ .FieldName }} + '{{ .FieldName }}')); \n"
+	out += "} \n"
+	out += "</script>\n"
+
+	`
+
+			t := template.New("Ident template")
+			if t, err = t.Parse(tmpl); err != nil {
+				return
+			}
+
+			if err = t.Execute(&buf, f); err != nil {
+				return
+			}
+
+		default:
+			ast.Print(token.NewFileSet(), v)
+			fmt.Println(">", f)
+			err = fmt.Errorf("Type is not supported of array: %T. %#v", v, v.Elt)
+		}
 
 	default:
 		// TODO : Uncomment : err = fmt.Errorf("Type is not supported: %T", v)
@@ -92,48 +179,3 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 
 	return
 }
-
-//
-// Example : of array script
-//
-// <button type="button" name="ER" value="click me" OnClick="my_func()">+</button>
-// <br id="IDD">
-// <script>
-// var initVal = 1;
-//
-// function insertAfter(elem, refElem) {
-//   var parent = refElem.parentNode;
-//   var next = refElem.nextSibling;
-//   if (next) {
-//     return parent.insertBefore(elem, next);
-//   } else {
-//     return parent.appendChild(elem);
-//   }
-// }
-// function createEl(context) {
-//     var el3 = document.createElement("br");
-// 	insertAfter(el3,context);
-//     var el2 = document.createElement("br");
-// 	insertAfter(el2,context);
-//     var el = document.createElement("input");
-//     el.type = "text";
-// 	el.id   = "IdEl"+initVal;
-// 	el.name = "N"+initVal;
-// 	console.log(el);
-//     el.value = "SomeInput : "+initVal;
-// 	initVal++;
-// 	insertAfter(el,context);
-//     var el4 = document.createElement("br");
-// 	insertAfter(el4,context);
-//     var el5 = document.createElement("br");
-// 	insertAfter(el5,context);
-// }
-// function my_func()
-// {
-// 	if (initVal == 1) {
-// 		createEl(document.getElementById('IDD'));
-// 	} else {
-// 		createEl(document.getElementById('IdEl'+(initVal-1)));
-// 	}
-// }
-// </script>
