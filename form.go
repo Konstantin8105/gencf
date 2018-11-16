@@ -9,7 +9,8 @@ func createForm(structName string) (err error) {
 func (value %s) FormDefault(handlerName string) (out string){
 	out += "<!DOCTYPE html>\n"
 	out += "<html>\n"
-	out += "<body>\n"
+	out += "<body>\n"`, structName))
+	Parameter.Source.WriteString(`
 	out += fmt.Sprintf("<form action=\"%s\" target=\"_blank\" method=\"GET\">\n", handlerName)
 	out += value.ToHtml()
 	out += "<input type=\"submit\" value=\"Submit\">"
@@ -20,7 +21,6 @@ func (value %s) FormDefault(handlerName string) (out string){
 
 	return
 }
-`,
-		structName, structName))
+`)
 	return nil
 }
