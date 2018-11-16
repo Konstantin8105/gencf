@@ -1,6 +1,14 @@
 package test
 
+type Molly struct{
+	f float32
+}
+
 type TestStruct struct {
 	a int
 	b float64
+}
+
+type SomeAnother struct {
+	i int
 }
