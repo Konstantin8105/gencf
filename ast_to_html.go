@@ -82,7 +82,8 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 	// TODO
 
 	default:
-		err = fmt.Errorf("Type is not supported: %T", v)
+		// TODO : Uncomment : err = fmt.Errorf("Type is not supported: %T", v)
+		Parameter.Source.WriteString(fmt.Sprintf("\n\n// Type is not supported: %T\n\n", v))
 		return
 	}
 

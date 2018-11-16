@@ -4,6 +4,9 @@ type TestStruct struct {
 	// S is slice
 	S  []string
 
+	// Just simple string
+	str string
+
 	// a is var
 	a int
 }
