@@ -44,22 +44,156 @@ func (value TestStruct) toHtml(prefix string) (out string) {
 
 	out += fmt.Sprintf("\n<br><strong>S is slice</strong><br>\n")
 
-	// Type is not supported: *ast.ArrayType
+	//
+	// Exist elements of field: S
+	//
+	for i := range value.S {
+		out += fmt.Sprintf("Data %d<br>\n", i)
+		out += fmt.Sprintf(
+			"\n<input type=\"text\" name=\"%sS[%d]\" value=\"%s\"><br>\n",
+			prefix, i, fmt.Sprintf("%v", value.S))
+	}
+
+	//
+	// Array script of : S
+	//
+	out += "<button type=\"button\" OnClick=\"addS()\">+</button>\n"
+	out += fmt.Sprintf("<br id=\"breakLine%dS\">\n", len(value.S))
+	out += "<script>\n"
+	out += fmt.Sprintf("var initValS = %d;\n", len(value.S))
+	out += "\n"
+
+	out += "function insertAfterS(elem, refElem) { \n"
+	out += "  var parent = refElem.parentNode; \n"
+	out += "  var next = refElem.nextSibling; \n"
+	out += "  if (next) { \n"
+	out += "    return parent.insertBefore(elem, next); \n"
+	out += "  } else { \n"
+	out += "    return parent.appendChild(elem); \n"
+	out += "  } \n"
+	out += "} \n"
+
+	out += "function createElS(context) { \n"
+	out += "	// create input\n"
+	out += "	var el = document.createElement(\"input\"); \n"
+	out += "	el.type = \"text\"; \n"
+	out += "	el.name = \"TestStruct.S[\"+initVal+\"]\"; \n"
+	out += "	initVal++; \n"
+	out += "	insertAfterS(el,context); \n"
+	out += "	// create label\n"
+	out += "	var label = document.createElement(\"br\");\n"
+	out += "	label.id = \"breakLine\" + initValS + \"S\"\n"
+	out += "	insertAfterS (label, context);"
+	out += " } \n"
+
+	out += "function addS() { \n"
+	out += "\t createElS(document.getElementById('breakLine' + initValS + 'S')); \n"
+	out += "} \n"
+	out += "</script>\n"
 
 	// Field : U
 
-	// Type is not supported: *ast.ArrayType
+	//
+	// Exist elements of field: U
+	//
+	for i := range value.U {
+		out += fmt.Sprintf("Data %d<br>\n", i)
+		out += fmt.Sprintf(
+			"\n<input type=\"text\" name=\"%sU[%d]\" value=\"%s\"><br>\n",
+			prefix, i, fmt.Sprintf("%v", value.U))
+	}
+
+	//
+	// Array script of : U
+	//
+	out += "<button type=\"button\" OnClick=\"addU()\">+</button>\n"
+	out += fmt.Sprintf("<br id=\"breakLine%dU\">\n", len(value.U))
+	out += "<script>\n"
+	out += fmt.Sprintf("var initValU = %d;\n", len(value.U))
+	out += "\n"
+
+	out += "function insertAfterU(elem, refElem) { \n"
+	out += "  var parent = refElem.parentNode; \n"
+	out += "  var next = refElem.nextSibling; \n"
+	out += "  if (next) { \n"
+	out += "    return parent.insertBefore(elem, next); \n"
+	out += "  } else { \n"
+	out += "    return parent.appendChild(elem); \n"
+	out += "  } \n"
+	out += "} \n"
+
+	out += "function createElU(context) { \n"
+	out += "	// create input\n"
+	out += "	var el = document.createElement(\"input\"); \n"
+	out += "	el.type = \"text\"; \n"
+	out += "	el.name = \"TestStruct.U[\"+initVal+\"]\"; \n"
+	out += "	initVal++; \n"
+	out += "	insertAfterU(el,context); \n"
+	out += "	// create label\n"
+	out += "	var label = document.createElement(\"br\");\n"
+	out += "	label.id = \"breakLine\" + initValU + \"U\"\n"
+	out += "	insertAfterU (label, context);"
+	out += " } \n"
+
+	out += "function addU() { \n"
+	out += "\t createElU(document.getElementById('breakLine' + initValU + 'U')); \n"
+	out += "} \n"
+	out += "</script>\n"
 
 	// Field : U8
 
-	// Type is not supported: *ast.ArrayType
+	//
+	// Exist elements of field: U8
+	//
+	for i := range value.U8 {
+		out += fmt.Sprintf("Data %d<br>\n", i)
+		out += fmt.Sprintf(
+			"\n<input type=\"text\" name=\"%sU8[%d]\" value=\"%s\"><br>\n",
+			prefix, i, fmt.Sprintf("%v", value.U8))
+	}
+
+	//
+	// Array script of : U8
+	//
+	out += "<button type=\"button\" OnClick=\"addU8()\">+</button>\n"
+	out += fmt.Sprintf("<br id=\"breakLine%dU8\">\n", len(value.U8))
+	out += "<script>\n"
+	out += fmt.Sprintf("var initValU8 = %d;\n", len(value.U8))
+	out += "\n"
+
+	out += "function insertAfterU8(elem, refElem) { \n"
+	out += "  var parent = refElem.parentNode; \n"
+	out += "  var next = refElem.nextSibling; \n"
+	out += "  if (next) { \n"
+	out += "    return parent.insertBefore(elem, next); \n"
+	out += "  } else { \n"
+	out += "    return parent.appendChild(elem); \n"
+	out += "  } \n"
+	out += "} \n"
+
+	out += "function createElU8(context) { \n"
+	out += "	// create input\n"
+	out += "	var el = document.createElement(\"input\"); \n"
+	out += "	el.type = \"text\"; \n"
+	out += "	el.name = \"TestStruct.U8[\"+initVal+\"]\"; \n"
+	out += "	initVal++; \n"
+	out += "	insertAfterU8(el,context); \n"
+	out += "	// create label\n"
+	out += "	var label = document.createElement(\"br\");\n"
+	out += "	label.id = \"breakLine\" + initValU8 + \"U8\"\n"
+	out += "	insertAfterU8 (label, context);"
+	out += " } \n"
+
+	out += "function addU8() { \n"
+	out += "\t createElU8(document.getElementById('breakLine' + initValU8 + 'U8')); \n"
+	out += "} \n"
+	out += "</script>\n"
 
 	// Field : sos
 
 	out += fmt.Sprintf("\n<br><strong>Slice of structs</strong><br>\n")
 
-	// Type is not supported: *ast.ArrayType
-
+	// Type is not supported of array: *ast.ArrayType. "Se"
 	// Field : a
 	out += fmt.Sprintf(
 		"\n<input type=\"text\" name=\"%sa\" value=\"%s\"><br>\n",

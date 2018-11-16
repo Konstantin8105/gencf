@@ -163,9 +163,10 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 			}
 
 		default:
-			ast.Print(token.NewFileSet(), v)
-			fmt.Println(">", f)
-			err = fmt.Errorf("Type is not supported of array: %T. %#v", v, v.Elt)
+			// ast.Print(token.NewFileSet(), v)
+			// TODO : Uncomment : err = fmt.Errorf("Type is not supported of array: %T. %#v", v, v.Elt)
+			Parameter.Source.WriteString(fmt.Sprintf("\n\n// Type is not supported of array: %T. %#v", v, v.Elt.(*ast.Ident).Name))
+			return
 		}
 
 	default:
