@@ -257,6 +257,12 @@ func parsing(decl *ast.GenDecl, structName string) (err error) {
 		}
 	}
 
+	// ToForm
+	err = createForm(structName)
+	if err != nil {
+		et.Add(err)
+	}
+
 	if et.IsError() {
 		err = et
 	}

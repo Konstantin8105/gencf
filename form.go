@@ -1,24 +1,26 @@
 package main
 
-func newHandler(w http.ResponseWriter, r *http.Request) {
-	d := Nu18007_H101()
-	tmpl := `
-<!DOCTYPE html>
-<html>
-<body>
+import "fmt"
 
-<h1>New projects:</h1>
+func createForm(structName string) (err error) {
+	AddImport("fmt")
+	Parameter.Source.WriteString(fmt.Sprintf(
+		`
+func (value %s) FormDefault(handlerName string) (out string){
+	out += "<!DOCTYPE html>\n"
+	out += "<html>\n"
+	out += "<body>\n"
+	out += fmt.Sprintf("<form action=\"%s\" target=\"_blank\" method=\"GET\">\n", handlerName)
+	out += value.ToHtml()
+	out += "<input type=\"submit\" value=\"Submit\">"
+	out += "</form>"
+	out += "<br>\n"
+	out += "</body>\n"
+	out += "</html>\n"
 
-<form action="/result" target="_blank" method="GET">
-
-` + d.ToHtml() + `
-
-  <br>
-  <input type="submit" value="Submit">
-</form>
-
-</body>
-</html>
-`
-	w.Write([]byte(tmpl))
+	return
+}
+`,
+		structName, structName))
+	return nil
 }
