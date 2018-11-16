@@ -92,3 +92,48 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 
 	return
 }
+
+//
+// Example : of array script
+//
+// <button type="button" name="ER" value="click me" OnClick="my_func()">+</button>
+// <br id="IDD">
+// <script>
+// var initVal = 1;
+//
+// function insertAfter(elem, refElem) {
+//   var parent = refElem.parentNode;
+//   var next = refElem.nextSibling;
+//   if (next) {
+//     return parent.insertBefore(elem, next);
+//   } else {
+//     return parent.appendChild(elem);
+//   }
+// }
+// function createEl(context) {
+//     var el3 = document.createElement("br");
+// 	insertAfter(el3,context);
+//     var el2 = document.createElement("br");
+// 	insertAfter(el2,context);
+//     var el = document.createElement("input");
+//     el.type = "text";
+// 	el.id   = "IdEl"+initVal;
+// 	el.name = "N"+initVal;
+// 	console.log(el);
+//     el.value = "SomeInput : "+initVal;
+// 	initVal++;
+// 	insertAfter(el,context);
+//     var el4 = document.createElement("br");
+// 	insertAfter(el4,context);
+//     var el5 = document.createElement("br");
+// 	insertAfter(el5,context);
+// }
+// function my_func()
+// {
+// 	if (initVal == 1) {
+// 		createEl(document.getElementById('IDD'));
+// 	} else {
+// 		createEl(document.getElementById('IdEl'+(initVal-1)));
+// 	}
+// }
+// </script>
