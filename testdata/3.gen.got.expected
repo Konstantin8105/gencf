@@ -24,3 +24,18 @@ func (value TestStruct) toHtml(prefix string) (out string) {
 func (value TestStruct) ToHtml() (out string) {
 	return value.toHtml("TestStruct.")
 }
+
+func (value TestStruct) FormDefault(handlerName string) (out string) {
+	out += "<!DOCTYPE html>\n"
+	out += "<html>\n"
+	out += "<body>\n"
+	out += fmt.Sprintf("<form action=\"%s\" target=\"_blank\" method=\"GET\">\n", handlerName)
+	out += value.ToHtml()
+	out += "<input type=\"submit\" value=\"Submit\">"
+	out += "</form>"
+	out += "<br>\n"
+	out += "</body>\n"
+	out += "</html>\n"
+
+	return
+}
