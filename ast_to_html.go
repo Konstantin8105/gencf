@@ -117,12 +117,9 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 	//
 	// Array script of : {{ .FieldName }} 
 	//
-	out += "<button type=\"button\" OnClick=\"add{{ .FieldName }}()\">+</button>\n"
-	out += fmt.Sprintf("<br id=\"breakLine%d{{ .FieldName }}\">\n",len(value{{ .FieldNameWithFirstPoint }}))
 	out += "<script>\n"
 	out += fmt.Sprintf("var initVal{{ .FieldName }} = %d;\n",len(value{{ .FieldNameWithFirstPoint}}))
 	out += "\n"
-
 	out += "function insertAfter{{ .FieldName }}(elem, refElem) { \n"
 	out += "  var parent = refElem.parentNode; \n"
 	out += "  var next = refElem.nextSibling; \n"
@@ -137,19 +134,24 @@ func structToHtml(a *ast.Field, structName string) (err error) {
 	out += "	// create input\n"
 	out += "	var el = document.createElement(\"input\"); \n"
 	out += "	el.type = \"text\"; \n"
-	out += "	el.name = \"{{ .StructName }}{{ .FieldName }}[\"+initVal+\"]\"; \n"
-	out += "	initVal++; \n"
+	out += "	el.name = \"{{ .StructName }}{{ .FieldName }}[\"+initVal{{ .FieldName }}+\"]\"; \n"
+	out += "	initVal{{ .FieldName }}++; \n"
 	out += "	insertAfter{{ .FieldName }}(el,context); \n"
 	out += "	// create label\n"
 	out += "	var label = document.createElement(\"br\");\n"
-	out += "	label.id = \"breakLine\" + initVal{{ .FieldName }} + \"{{ .FieldName }}\"\n";
-	out += "	insertAfter{{ .FieldName }} (label, context);"
+	out += "	label.id = \"breakLine\" + initVal{{ .FieldName }} + \"{{ .FieldName }}\";\n";
+	out += "	insertAfter{{ .FieldName }} (label, context);\n"
 	out += " } \n"
 
 	out += "function add{{ .FieldName }}() { \n"
-	out += "\t createEl{{ .FieldName }}(document.getElementById('breakLine' + initVal{{ .FieldName }} + '{{ .FieldName }}')); \n"
+	out += "\t var name = 'breakLine' + initVal{{ .FieldName }} + '{{ .FieldName }}'; \n"
+	out += "\t createEl{{ .FieldName }}(document.getElementById(name)); \n"
+	out += "\t console.log(name);\n "
 	out += "} \n"
 	out += "</script>\n"
+
+	out += "<button type=\"button\" OnClick=\"add{{ .FieldName }}()\">+</button>\n"
+	out += fmt.Sprintf("<br id=\"breakLine%d{{ .FieldName }}\">\n",len(value{{ .FieldNameWithFirstPoint }}))
 
 	`
 
