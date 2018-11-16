@@ -23,12 +23,9 @@ func (value TestStruct) toHtml(prefix string) (out string) {
 	//
 	// Array script of : S
 	//
-	out += "<button type=\"button\" OnClick=\"addS()\">+</button>\n"
-	out += fmt.Sprintf("<br id=\"breakLine%dS\">\n", len(value.S))
 	out += "<script>\n"
 	out += fmt.Sprintf("var initValS = %d;\n", len(value.S))
 	out += "\n"
-
 	out += "function insertAfterS(elem, refElem) { \n"
 	out += "  var parent = refElem.parentNode; \n"
 	out += "  var next = refElem.nextSibling; \n"
@@ -43,19 +40,24 @@ func (value TestStruct) toHtml(prefix string) (out string) {
 	out += "	// create input\n"
 	out += "	var el = document.createElement(\"input\"); \n"
 	out += "	el.type = \"text\"; \n"
-	out += "	el.name = \"TestStruct.S[\"+initVal+\"]\"; \n"
-	out += "	initVal++; \n"
+	out += "	el.name = \"TestStruct.S[\"+initValS+\"]\"; \n"
+	out += "	initValS++; \n"
 	out += "	insertAfterS(el,context); \n"
 	out += "	// create label\n"
 	out += "	var label = document.createElement(\"br\");\n"
-	out += "	label.id = \"breakLine\" + initValS + \"S\"\n"
-	out += "	insertAfterS (label, context);"
+	out += "	label.id = \"breakLine\" + initValS + \"S\";\n"
+	out += "	insertAfterS (label, context);\n"
 	out += " } \n"
 
 	out += "function addS() { \n"
-	out += "\t createElS(document.getElementById('breakLine' + initValS + 'S')); \n"
+	out += "\t var name = 'breakLine' + initValS + 'S'; \n"
+	out += "\t createElS(document.getElementById(name)); \n"
+	out += "\t console.log(name);\n "
 	out += "} \n"
 	out += "</script>\n"
+
+	out += "<button type=\"button\" OnClick=\"addS()\">+</button>\n"
+	out += fmt.Sprintf("<br id=\"breakLine%dS\">\n", len(value.S))
 
 	// Field : str
 
